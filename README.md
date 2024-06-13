@@ -4,6 +4,8 @@ Python package to manage Snowflake objects and permissions
 - **drop_create** to create Snowflake objects that are needed
 ![Example run](./docs/images/drop_create_example.png)
 
+- **permissions** to set up permissions for the objects using Permifrost (WIP)
+
 ## Setup
 
 ### Install
