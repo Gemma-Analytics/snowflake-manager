@@ -1,5 +1,6 @@
 import argparse
 import logging
+import subprocess
 from yaml import load, Loader
 
 from typing import FrozenSet, Dict
@@ -143,6 +144,28 @@ def drop_create(args):
     console.log("\nDONE!")
 
 
+def permifrost(args):
+    try:
+        # Call the Permifrost CLI
+        result = subprocess.run(
+            ['permifrost', '-vv', 'run', args.permifrost_spec_path, '--dry'],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+
+        # Forward stdout to the logger
+        console.log(result.stdout)
+
+        # Forward stderr to the logger
+        if result.stderr:
+            log.error(result.stderr)
+
+    except subprocess.CalledProcessError as e:
+        # Handle errors from the Permifrost CLI
+        log.error(f"Permifrost command failed with exit code {e.returncode}")
+        log.error(e.stderr)
+
 def main():
     parser = argparse.ArgumentParser(
         description="Snowflake Manager - Drop, create and alter Snowflake objects and set permissions with Permifrost"
@@ -156,7 +179,10 @@ def main():
     parser_drop_create.set_defaults(func=drop_create)
 
     # Permissions functionality
-    # TODO: run Permifrost from here as a wrapper
+    parser_drop_create = subparsers.add_parser("permifrost")
+    parser_drop_create.add_argument("-p", "--permifrost_spec_path", "--filepath", required=True)
+    parser_drop_create.add_argument("--dry", action="store_true")
+    parser_drop_create.set_defaults(func=permifrost)
 
     args = parser.parse_args()
     args.func(args)
