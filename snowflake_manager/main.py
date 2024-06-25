@@ -135,7 +135,7 @@ def drop_create(args):
         )
         console.log(80 * "-")
 
-    console.log("START...")
+    console.log("Starting...")
     console.log(
         "Resolving objects based on Snowflake metadata and Permifrost specification..."
     )
@@ -150,16 +150,16 @@ def drop_create(args):
 
     execute_ddl(get_snowflake_cursor(), all_ddl_statements, args.dry)
 
-    console.log("\nDONE!")
+    console.log("Completed successfully")
 
 
 def permifrost(args):
-    console.log("START...")
+    console.log("Starting...")
     cmd = ["permifrost", "run", args.permifrost_spec_path]
     if args.dry:
         cmd.append("--dry")
     run_command(cmd)
-    console.log("\nDONE!")
+    console.log("Completed successfully")
 
 
 def main():
