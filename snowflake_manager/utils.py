@@ -1,5 +1,6 @@
 import logging
 import os
+import subprocess
 from typing import Dict
 
 from rich.console import Console
@@ -83,3 +84,36 @@ def format_params(params: Dict) -> str:
         value_type = get_param_value_type(value)
         params_formatted.append(templates[value_type].format(name=name, value=value))
     return ", ".join(params_formatted)
+
+
+def run_command(command):
+    try:
+        process = subprocess.Popen(
+            command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+        )
+
+        # Continuously read and print output
+        while True:
+            output = process.stdout.readline()
+            if output == "" and process.poll() is not None:
+                break
+            if output:
+                console.log(output.strip())
+
+        # Check for errors
+        stderr_output, _ = process.communicate()
+        if process.returncode != 0:
+            raise subprocess.CalledProcessError(
+                process.returncode, command, stderr_output
+            )
+
+    except subprocess.CalledProcessError as e:
+        log.error(f"Command '{e.cmd}' failed with return code {e.returncode}")
+        log.error(f"Error output: {e.output}")
+        raise
+    except OSError as e:
+        log.error(f"OS error: {e}")
+        raise
+    except Exception as e:
+        log.error(f"Unexpected error: {e}")
+        raise

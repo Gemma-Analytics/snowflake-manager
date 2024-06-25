@@ -5,6 +5,7 @@ setup(
     version="0.0.1",
     packages=["snowflake_manager"],
     install_requires=[
+        "permifrost>=0.15.0,<0.16.0",
         "pyyaml",
         "snowflake-connector-python",
         "python-dotenv",

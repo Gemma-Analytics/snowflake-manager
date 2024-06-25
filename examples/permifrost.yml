@@ -123,8 +123,8 @@ roles:
         - reporter
         - developer
         - analyst
-  - human_role_owner:
-      # Should be member of all human roles
+  - userrole_role_owner:
+      # Should be member of all userrole roles
       member_of:   ### TBU ###
         # Except for user roles who are member of high-level system roles (otherwise it fails with "would create a cycle")
         # - userrole_bijan

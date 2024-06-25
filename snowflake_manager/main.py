@@ -1,5 +1,6 @@
 import argparse
 import logging
+import subprocess
 from yaml import load, Loader
 
 from typing import FrozenSet, Dict
@@ -9,7 +10,12 @@ from rich.logging import RichHandler
 
 from snowflake_manager.constants import OBJECT_TYPES, DDL_ROLE
 from snowflake_manager.objects import SnowflakeObject
-from snowflake_manager.utils import get_snowflake_cursor, format_params, execute_ddl
+from snowflake_manager.utils import (
+    get_snowflake_cursor,
+    format_params,
+    execute_ddl,
+    run_command,
+)
 from snowflake_manager.inspector import inspect_object_type
 from snowflake_manager.parser import parse_object_type
 
@@ -124,11 +130,15 @@ def drop_create(args):
 
     if args.dry:
         console.log(80 * "-")
-        console.log("[bold]Running in [yellow]dry run mode[/yellow] (only SHOW statements are executed)[/bold]")
+        console.log(
+            "[bold]Running in [yellow]dry run mode[/yellow] (only SHOW statements are executed)[/bold]"
+        )
         console.log(80 * "-")
 
     console.log("START...")
-    console.log("Fetching Snowflake metadata and Permifrost specification...")
+    console.log(
+        "Resolving objects based on Snowflake metadata and Permifrost specification..."
+    )
 
     for object_type in OBJECT_TYPES:
         all_ddl_statements[object_type] = resolve_objects(
@@ -143,6 +153,13 @@ def drop_create(args):
     console.log("\nDONE!")
 
 
+def permifrost(args):
+    cmd = ["permifrost", "-vv", "run", args.permifrost_spec_path]
+    if args.dry:
+        cmd.append("--dry")
+    run_command(cmd)
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Snowflake Manager - Drop, create and alter Snowflake objects and set permissions with Permifrost"
@@ -151,12 +168,19 @@ def main():
 
     # Drop/create functionality
     parser_drop_create = subparsers.add_parser("drop_create")
-    parser_drop_create.add_argument("-p", "--permifrost_spec_path", "--filepath", required=True)
+    parser_drop_create.add_argument(
+        "-p", "--permifrost_spec_path", "--filepath", required=True
+    )
     parser_drop_create.add_argument("--dry", action="store_true")
     parser_drop_create.set_defaults(func=drop_create)
 
-    # Permissions functionality
-    # TODO: run Permifrost from here as a wrapper
+    # Permifrost functionality
+    parser_drop_create = subparsers.add_parser("permifrost")
+    parser_drop_create.add_argument(
+        "-p", "--permifrost_spec_path", "--filepath", required=True
+    )
+    parser_drop_create.add_argument("--dry", action="store_true")
+    parser_drop_create.set_defaults(func=permifrost)
 
     args = parser.parse_args()
     args.func(args)
