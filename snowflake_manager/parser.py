@@ -6,7 +6,7 @@ from snowflake_manager.constants import OBJECT_TYPES, OBJECT_TYPE_MAP
 from snowflake_manager.objects import SnowflakeObject, Schema, ConfigurationValueError
 from snowflake_manager.utils import plural
 
-PERMIFROST_YAML_FILEPATH = "snowflake/permifrost.yml"
+PERMIFROST_YAML_FILEPATH = "examples/permifrost.yml"
 
 
 def parse_schemas(permifrost_spec: dict) -> FrozenSet[Schema]:
