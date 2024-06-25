@@ -111,9 +111,6 @@ def run_command(command):
         log.error(f"Command '{e.cmd}' failed with return code {e.returncode}")
         log.error(f"Error output: {e.output}")
         raise
-    except OSError as e:
-        log.error(f"OS error: {e}")
-        raise
     except Exception as e:
         log.error(f"Unexpected error: {e}")
         raise
