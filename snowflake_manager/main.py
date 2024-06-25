@@ -129,7 +129,7 @@ def drop_create(args):
         console.log(80 * "-")
 
     console.log("START...")
-    console.log("Fetching Snowflake metadata and Permifrost specification...")
+    console.log("Resolving objects based on Snowflake metadata and Permifrost specification...")
 
     for object_type in OBJECT_TYPES:
         all_ddl_statements[object_type] = resolve_objects(
@@ -146,25 +146,23 @@ def drop_create(args):
 
 def permifrost(args):
     try:
-        # Call the Permifrost CLI
+        cmd = ['permifrost', '-vv', 'run', args.permifrost_spec_path]
+        if args.dry:
+            cmd.append('--dry')
         result = subprocess.run(
-            ['permifrost', '-vv', 'run', args.permifrost_spec_path, '--dry'],
+            cmd,
             capture_output=True,
             text=True,
             check=True
         )
-
-        # Forward stdout to the logger
         console.log(result.stdout)
-
-        # Forward stderr to the logger
         if result.stderr:
             log.error(result.stderr)
 
     except subprocess.CalledProcessError as e:
-        # Handle errors from the Permifrost CLI
         log.error(f"Permifrost command failed with exit code {e.returncode}")
         log.error(e.stderr)
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -178,7 +176,7 @@ def main():
     parser_drop_create.add_argument("--dry", action="store_true")
     parser_drop_create.set_defaults(func=drop_create)
 
-    # Permissions functionality
+    # Permifrost functionality
     parser_drop_create = subparsers.add_parser("permifrost")
     parser_drop_create.add_argument("-p", "--permifrost_spec_path", "--filepath", required=True)
     parser_drop_create.add_argument("--dry", action="store_true")
