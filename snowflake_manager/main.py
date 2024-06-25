@@ -154,10 +154,12 @@ def drop_create(args):
 
 
 def permifrost(args):
-    cmd = ["permifrost", "-vv", "run", args.permifrost_spec_path]
+    console.log("START...")
+    cmd = ["permifrost", "run", args.permifrost_spec_path]
     if args.dry:
         cmd.append("--dry")
     run_command(cmd)
+    console.log("\nDONE!")
 
 
 def main():
