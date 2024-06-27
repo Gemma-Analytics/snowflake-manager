@@ -126,12 +126,11 @@ def resolve_objects(
 
 
 def drop_create(args):
-    if args.dry:
-        log_dry_run_warning()
-    
     permifrost_spec = load(open(args.permifrost_spec_path, "r"), Loader=Loader)
 
     console.log("[bold][purple]Drop/create Snowflake objects[/purple] started[/bold]")
+    if args.dry:
+        log_dry_run_warning()
     console.log(
         "Resolving objects based on Snowflake metadata and Permifrost specification"
     )
@@ -146,7 +145,9 @@ def drop_create(args):
 
     execute_ddl(get_snowflake_cursor(), all_ddl_statements, args.dry)
 
-    console.log("[bold][purple]Drop/create Snowflake objects[/purple] completed successfully[/bold]\n")
+    console.log(
+        "[bold][purple]Drop/create Snowflake objects[/purple] completed successfully[/bold]\n"
+    )
 
 
 def permifrost(args):

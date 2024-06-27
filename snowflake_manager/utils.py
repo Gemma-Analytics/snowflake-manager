@@ -104,13 +104,10 @@ def run_command(command):
     _, errs = process.communicate()
     if process.returncode != 0:
         log.error(errs)
-        raise subprocess.CalledProcessError(
-            process.returncode, command, errs
-        )
+        raise subprocess.CalledProcessError(process.returncode, command, errs)
+
 
 def log_dry_run_warning():
     console.log(80 * "-")
-    console.log(
-        "[bold]Running in [yellow]dry run mode[/yellow][/bold]"
-    )
+    console.log("[bold]Running in [yellow]dry run mode[/yellow][/bold]")
     console.log(80 * "-")
