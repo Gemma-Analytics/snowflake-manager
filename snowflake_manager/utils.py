@@ -107,3 +107,10 @@ def run_command(command):
         raise subprocess.CalledProcessError(
             process.returncode, command, errs
         )
+
+def log_dry_run_warning():
+    console.log(80 * "-")
+    console.log(
+        "[bold]Running in [yellow]dry run mode[/yellow][/bold]"
+    )
+    console.log(80 * "-")
