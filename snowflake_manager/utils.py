@@ -1,7 +1,6 @@
 import logging
 import os
 import subprocess
-import traceback
 from typing import Dict
 
 from rich.console import Console
