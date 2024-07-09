@@ -106,7 +106,9 @@ def log_error_due_to_missing_object_in_snowflake(error_msg: str):
             f"""
         {first_line}
         This is expected if the object was just added to Permifrost spec and a normal drop/create run was not performed yet.
-        Please run the `drop_create` command first and then try again.
+        ---
+        Note: this error is common when running in dry run mode in CI/CD checks after adding a new user and related databases to the Permifrost spec. In this case, it is recommended to ignore the error, review the DDL statements that would be run (in the logs above), double check the PR changes and proceed with merging the PR.
+        ---
     """
         ).strip()
     )
