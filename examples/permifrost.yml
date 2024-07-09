@@ -24,10 +24,6 @@ databases:
       shared: no
   - dev_lui_analytics:
       shared: no
-  - dev_bob_raw:
-      shared: no
-  - dev_bob_analytics:
-      shared: no
 
   # In case the client uses dbt Cloud
   - dev_cloud:
@@ -134,7 +130,6 @@ roles:
         # - userrole_bijan
         # - userrole_lui
         - userrole_dev_cloud # For testing only - should be a real human dev (e.g. Bob or Alice, who is not member of high-level system roles)
-        - userrole_bob
 
   # Operations Roles
   # When adding a role: add the role to member_of of ops_role_owner
@@ -256,21 +251,6 @@ roles:
           - dev_lui_raw.*.*
           - dev_lui_analytics.*.*
 
-  - userrole_bob:
-      member_of:
-        - developer
-        - analyst
-      owns:
-        databases:
-          - dev_bob_raw
-          - dev_bob_analytics
-        schemas:
-          - dev_bob_raw.*
-          - dev_bob_analytics.*
-        tables:
-          - dev_bob_raw.*.*
-          - dev_bob_analytics.*.*
-
   - userrole_dev_cloud:
       member_of:
         - developer
@@ -379,15 +359,6 @@ users:
         - accountadmin
       meta:
         default_role: userrole_lui
-        default_warehouse: develop
-        password: 1passwordvault
-        must_change_password: true
-  - bob:
-      can_login: yes
-      member_of:
-        - userrole_bob
-      meta:
-        default_role: userrole_bob
         default_warehouse: develop
         password: 1passwordvault
         must_change_password: true
