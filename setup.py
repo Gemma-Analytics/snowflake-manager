@@ -12,6 +12,6 @@ setup(
         "rich",
     ],
     entry_points={
-        "console_scripts": ["snowflake_manager=snowflake_manager.main:main"],
+        "console_scripts": ["snowflake_manager=snowflake_manager.cli:main"],
     },
 )

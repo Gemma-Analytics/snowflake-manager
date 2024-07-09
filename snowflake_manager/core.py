@@ -1,23 +1,18 @@
-import argparse
 import logging
-import subprocess
-from yaml import load, Loader
-
 from typing import FrozenSet, Dict
 
 from rich.console import Console
 from rich.logging import RichHandler
+from yaml import load, Loader
 
-from snowflake_manager.constants import OBJECT_TYPES, DDL_ROLE
+from snowflake_manager.constants import DDL_ROLE, OBJECT_TYPES
+from snowflake_manager.inspector import inspect_object_type
 from snowflake_manager.objects import SnowflakeObject
+from snowflake_manager.parser import parse_object_type
 from snowflake_manager.utils import (
     get_snowflake_cursor,
     format_params,
-    execute_ddl,
-    run_command,
 )
-from snowflake_manager.inspector import inspect_object_type
-from snowflake_manager.parser import parse_object_type
 
 
 all_ddl_statements = {object_type: None for object_type in OBJECT_TYPES}
@@ -39,6 +34,26 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 log.setLevel("INFO")
 console = Console()
+
+
+def execute_ddl(cursor, statements: dict, is_dry_run: bool) -> None:
+    """Execute drop, create and alter statements in sequence for each object type.
+
+    Args:
+        cursor: Snowflake API cursor object
+        statements: dict with the list of statements of each type (e.g. create, drop)
+                    it assumes statements come as pairs  like "USE ROLE...; CREATE/DROP ..."
+        is_dry_run: when true, skips any create or drop statement (only prints it)
+    """
+    for object_type in OBJECT_TYPES:
+        for operation in ["drop", "create", "alter"]:
+            for statement_pair in statements[object_type][operation]:
+                for s in statement_pair.split(";"):
+                    if s:  # Ignore empty strings
+                        console.log(s)
+                        if not is_dry_run:
+                            cursor.execute(s)
+                            console.log("Executed successfully\n")
 
 
 def resolve_objects(
@@ -63,6 +78,7 @@ def resolve_objects(
 
     # Infer type from arguments
     object_type = list(existing_objects)[0].type
+    console.log(f"Resolving {object_type} objects")
 
     # Check which objects to drop/create/keep
     objects_to_drop = existing_objects.difference(ought_objects)
@@ -125,20 +141,9 @@ def resolve_objects(
     return ddl_statements
 
 
-def drop_create(args):
-    permifrost_spec = load(open(args.permifrost_spec_path, "r"), Loader=Loader)
-
-    if args.dry:
-        console.log(80 * "-")
-        console.log(
-            "[bold]Running in [yellow]dry run mode[/yellow] (only SHOW statements are executed)[/bold]"
-        )
-        console.log(80 * "-")
-
-    console.log("START...")
-    console.log(
-        "Resolving objects based on Snowflake metadata and Permifrost specification..."
-    )
+def drop_create_objects(permifrost_spec_path: str, is_dry_run: bool):
+    """Drop and create Snowflake objects based on Permifrost specification and inspection of Snowflake metadata."""
+    permifrost_spec = load(open(permifrost_spec_path, "r"), Loader=Loader)
 
     for object_type in OBJECT_TYPES:
         all_ddl_statements[object_type] = resolve_objects(
@@ -146,45 +151,17 @@ def drop_create(args):
             parse_object_type(permifrost_spec, object_type),
         )
 
-    console.log("Statements:\n")
+    console.log("\nDDL Statements:")
+    execute_ddl(get_snowflake_cursor(), all_ddl_statements, is_dry_run)
 
-    execute_ddl(get_snowflake_cursor(), all_ddl_statements, args.dry)
-
-    console.log("\nDONE!")
-
-
-def permifrost(args):
-    cmd = ["permifrost", "-vv", "run", args.permifrost_spec_path]
-    if args.dry:
-        cmd.append("--dry")
-    run_command(cmd)
-
-
-def main():
-    parser = argparse.ArgumentParser(
-        description="Snowflake Manager - Drop, create and alter Snowflake objects and set permissions with Permifrost"
-    )
-    subparsers = parser.add_subparsers()
-
-    # Drop/create functionality
-    parser_drop_create = subparsers.add_parser("drop_create")
-    parser_drop_create.add_argument(
-        "-p", "--permifrost_spec_path", "--filepath", required=True
-    )
-    parser_drop_create.add_argument("--dry", action="store_true")
-    parser_drop_create.set_defaults(func=drop_create)
-
-    # Permifrost functionality
-    parser_drop_create = subparsers.add_parser("permifrost")
-    parser_drop_create.add_argument(
-        "-p", "--permifrost_spec_path", "--filepath", required=True
-    )
-    parser_drop_create.add_argument("--dry", action="store_true")
-    parser_drop_create.set_defaults(func=permifrost)
-
-    args = parser.parse_args()
-    args.func(args)
-
-
-if __name__ == "__main__":
-    main()
+    is_empty = True
+    for object_type in OBJECT_TYPES:
+        for operation in ["drop", "create", "alter"]:
+            if len(all_ddl_statements[object_type][operation]) > 0:
+                is_empty = False
+                break
+    if is_empty:
+        console.log(
+            "No statements to execute (state of Snowflake objects matches Permifrost spec)\n"
+        )
+    console.log()

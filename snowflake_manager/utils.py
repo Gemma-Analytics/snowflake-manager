@@ -1,13 +1,13 @@
 import logging
 import os
+import re
 import subprocess
+import textwrap
 from typing import Dict
 
 from rich.console import Console
 from rich.logging import RichHandler
 from snowflake.connector import connect
-
-from snowflake_manager.constants import OBJECT_TYPES
 
 
 logging.basicConfig(
@@ -26,26 +26,6 @@ def get_snowflake_cursor():
         warehouse=os.getenv("PERMISSION_BOT_WAREHOUSE"),
         database=os.getenv("PERMISSION_BOT_DATABASE"),
     ).cursor()
-
-
-def execute_ddl(cursor, statements: dict, is_dry_run: bool) -> None:
-    """Execute drop, create and alter statements in sequence for each object type.
-
-    Args:
-        cursor: Snowflake API cursor object
-        statements: dict with the list of statements of each type (e.g. create, drop)
-                    it assumes statements come as pairs  like "USE ROLE...; CREATE/DROP ..."
-        is_dry_run: when true, skips any create or drop statement (only prints it)
-    """
-    for object_type in OBJECT_TYPES:
-        for operation in ["drop", "create", "alter"]:
-            for statement_pair in statements[object_type][operation]:
-                for s in statement_pair.split(";"):
-                    if s:  # Ignore empty strings
-                        console.log(s)
-                        if not is_dry_run:
-                            cursor.execute(s)
-                            console.log("Executed successfully\n")
 
 
 def plural(name: str) -> str:
@@ -87,30 +67,48 @@ def format_params(params: Dict) -> str:
 
 
 def run_command(command):
-    try:
-        process = subprocess.Popen(
-            command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
-        )
+    process = subprocess.Popen(
+        command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+    )
 
-        # Continuously read and print output
-        while True:
-            output = process.stdout.readline()
-            if output == "" and process.poll() is not None:
-                break
-            if output:
-                console.log(output.strip())
+    # Continuously read and print output
+    while True:
+        output = process.stdout.readline()
+        if output == "" and process.poll() is not None:
+            break
+        if output:
+            console.log(output.strip())
 
-        # Check for errors
-        stderr_output, _ = process.communicate()
-        if process.returncode != 0:
-            raise subprocess.CalledProcessError(
-                process.returncode, command, stderr_output
-            )
+    # Check for errors
+    output, errs = process.communicate()
+    if process.returncode != 0:
+        raise subprocess.CalledProcessError(process.returncode, command, errs)
+    return output, errs
 
-    except subprocess.CalledProcessError as e:
-        log.error(f"Command '{e.cmd}' failed with return code {e.returncode}")
-        log.error(f"Error output: {e.output}")
-        raise
-    except Exception as e:
-        log.error(f"Unexpected error: {e}")
-        raise
+
+def log_dry_run_info():
+    console.log(80 * "-")
+    console.log("[bold]Running in [yellow]dry run mode[/yellow][/bold]")
+    console.log(80 * "-")
+
+
+def log_error_due_to_missing_object_in_snowflake(error_msg: str):
+    first_line = (
+        "Permifrost failed due to an object that does not exist in Snowflake yet."
+    )
+    match = re.search(r"SQL: SHOW TERSE TABLES IN DATABASE (\S+)]", error_msg)
+    if match:
+        database_name = match.group(1)
+        first_line = f"Permifrost failed due to a database that does not exist in Snowflake yet: `{database_name}`. "
+
+    log.error(
+        textwrap.dedent(
+            f"""
+        {first_line}
+        This is expected if the object was just added to Permifrost spec and a normal drop/create run was not performed yet.
+        ---
+        Note: this error is common when running in dry run mode in CI/CD checks after adding a new user and related databases to the Permifrost spec. In this case, it is recommended to ignore the error, review the DDL statements that would be run (in the logs above), double check the PR changes and proceed with merging the PR.
+        ---
+    """
+        ).strip()
+    )
