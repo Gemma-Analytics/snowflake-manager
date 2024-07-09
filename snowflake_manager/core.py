@@ -151,5 +151,15 @@ def drop_create_objects(permifrost_spec_path: str, is_dry_run: bool):
             parse_object_type(permifrost_spec, object_type),
         )
 
-    console.log("\nStatements:\n")
+    console.log("\nDDL Statements:")
     execute_ddl(get_snowflake_cursor(), all_ddl_statements, is_dry_run)
+    
+    is_empty = True
+    for object_type in OBJECT_TYPES:
+        for operation in ["drop", "create", "alter"]:
+            if len(all_ddl_statements[object_type][operation]) > 0:
+                is_empty = False
+                break
+    if is_empty:
+        console.log("No statements to execute (state of Snowflake objects matches Permifrost spec)\n")
+    console.log()
