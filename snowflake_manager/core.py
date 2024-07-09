@@ -78,6 +78,7 @@ def resolve_objects(
 
     # Infer type from arguments
     object_type = list(existing_objects)[0].type
+    console.log(f"Resolving {object_type} objects")
 
     # Check which objects to drop/create/keep
     objects_to_drop = existing_objects.difference(ought_objects)

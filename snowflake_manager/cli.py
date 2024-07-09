@@ -23,9 +23,6 @@ def drop_create(args):
     console.log("[bold][purple]Drop/create Snowflake objects[/purple] started[/bold]")
     if args.dry:
         log_dry_run_warning()
-    console.log(
-        "Resolving objects based on Snowflake metadata and Permifrost specification"
-    )
     drop_create_objects(args.permifrost_spec_path, args.dry)
     console.log(
         "[bold][purple]Drop/create Snowflake objects[/purple] completed successfully[/bold]\n"
