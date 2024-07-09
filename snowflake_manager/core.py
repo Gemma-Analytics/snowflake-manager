@@ -151,5 +151,5 @@ def drop_create_objects(permifrost_spec_path: str, is_dry_run: bool):
             parse_object_type(permifrost_spec, object_type),
         )
 
-    console.log("Statements:\n")
+    console.log("\nStatements:\n")
     execute_ddl(get_snowflake_cursor(), all_ddl_statements, is_dry_run)

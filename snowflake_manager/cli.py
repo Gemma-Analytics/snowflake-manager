@@ -1,5 +1,6 @@
 import argparse
 import logging
+import subprocess
 
 from rich.console import Console
 from rich.logging import RichHandler
@@ -7,7 +8,8 @@ from rich.logging import RichHandler
 from snowflake_manager.core import drop_create_objects
 from snowflake_manager.utils import (
     run_command,
-    log_dry_run_warning,
+    log_dry_run_info,
+    log_error_due_to_missing_object_in_snowflake,
 )
 
 
@@ -22,21 +24,32 @@ console = Console()
 def drop_create(args):
     console.log("[bold][purple]Drop/create Snowflake objects[/purple] started[/bold]")
     if args.dry:
-        log_dry_run_warning()
+        log_dry_run_info()
     drop_create_objects(args.permifrost_spec_path, args.dry)
     console.log(
-        "[bold][purple]Drop/create Snowflake objects[/purple] completed successfully[/bold]\n"
+        "[bold][purple]\nDrop/create Snowflake objects[/purple] completed successfully[/bold]\n"
     )
 
 
 def permifrost(args):
     console.log("[bold][purple]Permifrost[/purple] started[/bold]")
     cmd = ["permifrost", "run", args.permifrost_spec_path]
+
     if args.dry:
         cmd.append("--dry")
-        log_dry_run_warning()
-    run_command(cmd)
-    console.log("[bold][purple]Permifrost[/purple] completed successfully[bold]\n")
+        log_dry_run_info()
+
+    try:
+        run_command(cmd)
+        console.log("[bold][purple]Permifrost[/purple] completed successfully[bold]\n")
+    except subprocess.CalledProcessError as exp:
+        error_msg = exp.output
+        if "Object does not exist" in error_msg:
+            log_error_due_to_missing_object_in_snowflake(error_msg)
+            raise exp
+        else:
+            log.error(exp.output)
+            raise exp
 
 
 def run(args):

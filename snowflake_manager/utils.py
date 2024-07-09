@@ -1,6 +1,8 @@
 import logging
 import os
+import re
 import subprocess
+import textwrap
 from typing import Dict
 
 from rich.console import Console
@@ -78,13 +80,33 @@ def run_command(command):
             console.log(output.strip())
 
     # Check for errors
-    _, errs = process.communicate()
+    output, errs = process.communicate()
     if process.returncode != 0:
-        log.error(errs)
         raise subprocess.CalledProcessError(process.returncode, command, errs)
+    return output, errs
 
 
-def log_dry_run_warning():
+def log_dry_run_info():
     console.log(80 * "-")
     console.log("[bold]Running in [yellow]dry run mode[/yellow][/bold]")
     console.log(80 * "-")
+
+
+def log_error_due_to_missing_object_in_snowflake(error_msg: str):
+    first_line = (
+        "Permifrost failed due to an object that does not exist in Snowflake yet."
+    )
+    match = re.search(r"SQL: SHOW TERSE TABLES IN DATABASE (\S+)]", error_msg)
+    if match:
+        database_name = match.group(1)
+        first_line = f"Permifrost failed due to a database that does not exist in Snowflake yet: `{database_name}`. "
+
+    log.error(
+        textwrap.dedent(
+            f"""
+        {first_line}
+        This is expected if the object was just added to Permifrost spec and a normal drop/create run was not performed yet.
+        Please run the `drop_create` command first and then try again.
+    """
+        ).strip()
+    )
