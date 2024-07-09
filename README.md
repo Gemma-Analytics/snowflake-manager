@@ -12,10 +12,11 @@ Python package to manage Snowflake objects and permissions
 ## Setup
 
 ### Install
-Create virtual environment
+Create virtual environment, activate and upgrade `pip`
 ```bash
 python3 -m venv venv
 source venv/bin/activate
+pip install --upgrade pip
 ```
 
 Install from the GitHub repository
