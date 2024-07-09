@@ -56,7 +56,6 @@ def inspect_object_type(object_type: str) -> FrozenSet[SnowflakeObject]:
     if object_type == "schema":
         return inspect_schemas()
 
-    role = DDL_ROLE
     cursor.execute(f"USE ROLE {DDL_ROLE}")
     cursor.execute(f"SHOW {plural(object_type)}")
     desc = cursor.description
