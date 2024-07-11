@@ -1,3 +1,4 @@
 pyyaml
 snowflake-connector-python
 permifrost>=0.15.0,<0.16.0
+snowflake-sqlalchemy==1.5.3
