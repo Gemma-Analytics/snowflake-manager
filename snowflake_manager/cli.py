@@ -48,7 +48,7 @@ def permifrost(args):
             log_error_due_to_missing_object_in_snowflake(error_msg)
             raise exp
         else:
-            log.error(exp.output)
+            log.error(error_msg)
             raise exp
 
 
