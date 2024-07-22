@@ -40,6 +40,7 @@ def permifrost(args):
         log_dry_run_info()
 
     try:
+        console.log(f"Running command: \n[italic]{' '.join(cmd)}[/italic]\n")
         run_command(cmd)
         console.log("[bold][purple]Permifrost[/purple] completed successfully[bold]\n")
     except subprocess.CalledProcessError as exp:
