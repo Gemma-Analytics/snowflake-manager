@@ -70,6 +70,9 @@ def inspect_object_type(object_type: str) -> FrozenSet[SnowflakeObject]:
     inspected_objects = []
     for object in data:
         name = object.pop("name")
+        # Ignore Snowflake system objects
+        if name.startswith("system$"):
+            continue
         inspected_objects.append(OBJECT_TYPE_MAP[object_type](name=name, params=object))
 
     return frozenset(inspected_objects)
