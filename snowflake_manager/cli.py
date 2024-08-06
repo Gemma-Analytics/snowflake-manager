@@ -33,7 +33,7 @@ def drop_create(args):
 
 def permifrost(args):
     console.log("[bold][purple]Permifrost[/purple] started[/bold]")
-    cmd = ["permifrost", "run", args.permifrost_spec_path]
+    cmd = ["permifrost", "run", args.permifrost_spec_path, "--ignore-missing-entities-dry-run"]
 
     if args.dry:
         cmd.append("--dry")
@@ -43,14 +43,14 @@ def permifrost(args):
         console.log(f"Running command: \n[italic]{' '.join(cmd)}[/italic]\n")
         run_command(cmd)
         console.log("[bold][purple]Permifrost[/purple] completed successfully[bold]\n")
-    except subprocess.CalledProcessError as exp:
-        error_msg = exp.output
+    except subprocess.CalledProcessError as exc:
+        error_msg = exc.output
         if "Object does not exist" in error_msg:
             log_error_due_to_missing_object_in_snowflake(error_msg)
-            raise exp
+            raise exc
         else:
             log.error(error_msg)
-            raise exp
+            raise exc
 
 
 def run(args):
