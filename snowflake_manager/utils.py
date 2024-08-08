@@ -87,9 +87,9 @@ def run_command(command):
 
 
 def log_dry_run_info():
-    console.log(80 * "-")
+    console.log(20 * "-")
     console.log("[bold]Executing in [yellow]dry run mode[/yellow][/bold]")
-    console.log(80 * "-")
+    console.log(20 * "-")
 
 
 def log_error_due_to_missing_object_in_snowflake(error_msg: str):
