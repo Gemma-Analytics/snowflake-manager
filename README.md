@@ -8,6 +8,18 @@ Python package to manage Snowflake objects and permissions
 
 ![Example run](./docs/images/run_example.png)
 
+## How to use
+
+### Dry run
+
+```bash
+snowflake_manager run --permifrost_spec_path examples/permifrost.yml --dry
+```
+
+### Normal run
+```bash
+snowflake_manager run --permifrost_spec_path examples/permifrost.yml
+```
 
 ## Setup
 
@@ -64,19 +76,6 @@ PERMISSION_BOT_ROLE=PERMIFROST
 PERMISSION_BOT_WAREHOUSE=ADMIN
 PERMISSION_BOT_USER=PERMIFROST
 PERMISSION_BOT_PASSWORD=...
-```
-
-## Use
-
-### Dry run
-
-```bash
-snowflake_manager run --permifrost_spec_path examples/permifrost.yml --dry
-```
-
-### Normal run
-```bash
-snowflake_manager run --permifrost_spec_path examples/permifrost.yml
 ```
 
 ## Develop
