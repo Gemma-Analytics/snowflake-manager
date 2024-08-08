@@ -5,7 +5,7 @@ setup(
     version="0.0.1",
     packages=["snowflake_manager"],
     install_requires=[
-        "permifrost @ git+ssh://git@github.com/Gemma-Analytics/permifrost@main",
+        "permifrost @ git+https://github.com/Gemma-Analytics/permifrost@main",
         "pyyaml",
         "snowflake-connector-python",
         "python-dotenv",
