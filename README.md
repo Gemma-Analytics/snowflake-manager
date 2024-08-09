@@ -9,6 +9,7 @@ Python package to manage Snowflake objects and permissions
 ![Example run](./docs/images/run_example.png)
 
 ## How to use
+The `run` subcommand is going to drop/create objects and run Permifrost.
 
 ### Dry run
 
