@@ -33,13 +33,13 @@ pip install --upgrade pip
 
 Install from the GitHub repository
 ```bash
-pip install git+ssh://git@github.com/Gemma-Analytics/snowflake-manager.git
+pip install git+https://github.com/Gemma-Analytics/snowflake-manager.git
 ```
 
 > Note: you can specify a tag to install a specific version:
 > 
 > ```bash
-> pip install git+ssh://git@github.com/Gemma-Analytics/snowflake-manager.git@v1.0.0
+> pip install git+https://github.com/Gemma-Analytics/snowflake-manager.git@v1.0.0
 > ```
 
 ## Configure
