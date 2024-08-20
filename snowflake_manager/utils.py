@@ -94,7 +94,7 @@ def log_dry_run_info():
 
 def log_error_due_to_missing_object_in_snowflake(error_msg: str):
     first_line = (
-        "Permifrost failed due to an object that does not exist in Snowflake yet."
+        "Permifrost failed due to an object that does not exist in Snowflake yet. Full error message: {error_msg}"
     )
     match = re.search(r"SQL: SHOW TERSE TABLES IN DATABASE (\S+)]", error_msg)
     if match:
