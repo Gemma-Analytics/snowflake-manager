@@ -33,7 +33,12 @@ def drop_create(args):
 
 def permifrost(args):
     console.log("[bold][purple]Permifrost[/purple] started[/bold]")
-    cmd = ["permifrost", "run", args.permifrost_spec_path, "--ignore-missing-entities-dry-run"]
+    cmd = [
+        "permifrost",
+        "run",
+        args.permifrost_spec_path,
+        "--ignore-missing-entities-dry-run",
+    ]
 
     if args.dry:
         cmd.append("--dry")
