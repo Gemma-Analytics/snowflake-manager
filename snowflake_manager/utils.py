@@ -3,7 +3,7 @@ import os
 import re
 import subprocess
 import textwrap
-from typing import Dict
+from typing import Dict, Type, T
 
 from rich.console import Console
 from rich.logging import RichHandler
@@ -34,18 +34,19 @@ def plural(name: str) -> str:
 
 def treat_metadata_value(value):
     if isinstance(value, str):
+        value = value.strip().lower()
         if value == "true":
             return True
         if value == "false":
             return False
-        return value.lower()
+        return value
     return value
 
 
 def format_params(params: Dict) -> str:
     """Returns formated list of parameters to use as arguments in DDL statements"""
 
-    def get_param_value_type(value: str) -> type(type):
+    def get_param_value_type(value: str) -> Type[T]:
         if not isinstance(value, str):
             value = str(value)
         if value.isdigit():
