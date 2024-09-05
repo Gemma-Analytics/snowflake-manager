@@ -1,6 +1,6 @@
 import argparse
 import logging
-import subprocess
+import sys
 
 from rich.console import Console
 from rich.logging import RichHandler
@@ -29,6 +29,8 @@ def drop_create(args):
         console.log(
             "[bold][purple]\nDrop/create Snowflake objects[/purple] completed successfully[/bold]\n"
         )
+    else:
+        sys.exit(1)
 
 
 def permifrost(args):
