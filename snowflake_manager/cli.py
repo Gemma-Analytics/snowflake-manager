@@ -25,10 +25,11 @@ def drop_create(args):
     console.log("[bold][purple]Drop/create Snowflake objects[/purple] started[/bold]")
     if args.dry:
         log_dry_run_info()
-    drop_create_objects(args.permifrost_spec_path, args.dry)
-    console.log(
-        "[bold][purple]\nDrop/create Snowflake objects[/purple] completed successfully[/bold]\n"
-    )
+    is_success = drop_create_objects(args.permifrost_spec_path, args.dry)
+    if is_success:
+        console.log(
+            "[bold][purple]\nDrop/create Snowflake objects[/purple] completed successfully[/bold]\n"
+        )
 
 
 def permifrost(args):
