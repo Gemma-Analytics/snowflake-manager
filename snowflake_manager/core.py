@@ -85,6 +85,7 @@ def print_ddl_statements(statements: Dict) -> None:
         if s.startswith("USE ROLE"):
             continue
         console.log(f"[italic]- {s}[/italic]")
+    console.log()
 
 
 def execute_ddl(cursor, statements: List) -> None:
@@ -95,6 +96,7 @@ def execute_ddl(cursor, statements: List) -> None:
         statements: list with drop, create and alter statements in sequence for all
                     object types
     """
+    console.log("\n[bold]Executing DDL statements[/bold]:")
     for s in statements:
         console.log(s)
         cursor.execute(s)
@@ -193,7 +195,7 @@ def drop_create_objects(permifrost_spec_path: str, is_dry_run: bool):
     Args:
         permifrost_spec_path: path to the Permifrost specification file
         is_dry_run: flag to run the operation in dry-run mode
-    
+
     Returns:
         bool: True if the operation was successful, False otherwise
     """
@@ -210,8 +212,12 @@ def drop_create_objects(permifrost_spec_path: str, is_dry_run: bool):
     print_ddl_statements(ddl_statements_seq)
     drop_statements = [s for s in ddl_statements_seq if s.startswith("DROP")]
     if not is_dry_run and not IS_CI_RUN and drop_statements:
-        console.log(f"\n[bold][red]WARNING[/bold][/red]: The following DROP statements are about to be executed: {(drop_statements)}")
-        user_input = Prompt.ask("\n\t>>> Type [bold]drop[/bold] to proceed or any other key to abort")
+        console.log(
+            f"\n[bold][red]WARNING[/bold][/red]: The following DROP statements are about to be executed: {(drop_statements)}"
+        )
+        user_input = Prompt.ask(
+            "\n\t>>> Type [bold]drop[/bold] to proceed or any other key to abort"
+        )
         if user_input.lower() != "drop":
             console.log()
             console.log("Exited without executing any statements")
