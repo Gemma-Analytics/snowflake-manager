@@ -98,9 +98,11 @@ def execute_ddl(cursor, statements: List) -> None:
     """
     console.log("\n[bold]Executing DDL statements[/bold]:")
     for s in statements:
-        console.log(s)
         cursor.execute(s)
-        console.log("Executed successfully\n")
+        if s.startswith("USE ROLE"):
+            continue
+        console.log(f"[green]\u2713[/green] [italic]{s}[/italic]")
+        # console.log("\n")
 
 
 def resolve_objects(
