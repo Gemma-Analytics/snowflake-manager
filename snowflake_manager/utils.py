@@ -90,23 +90,3 @@ def log_dry_run_info():
     console.log(20 * "-")
     console.log("[bold]Executing in [yellow]dry run mode[/yellow][/bold]")
     console.log(20 * "-")
-
-
-def log_error_due_to_missing_object_in_snowflake(error_msg: str):
-    first_line = f"Permifrost failed due to an object that does not exist in Snowflake yet. Full error message: {error_msg}"
-    match = re.search(r"SQL: SHOW TERSE TABLES IN DATABASE (\S+)]", error_msg)
-    if match:
-        database_name = match.group(1)
-        first_line = f"Permifrost failed due to a database that does not exist in Snowflake yet: `{database_name}`. "
-
-    log.error(
-        textwrap.dedent(
-            f"""
-        {first_line}
-        This is expected if the object was just added to Permifrost spec and a normal drop/create run was not performed yet.
-        ---
-        Note: this error is common when running in dry run mode in CI/CD checks after adding a new user and related databases to the Permifrost spec. In this case, it is recommended to ignore the error, review the DDL statements that would be run (in the logs above), double check the PR changes and proceed with merging the PR.
-        ---
-    """
-        ).strip()
-    )
