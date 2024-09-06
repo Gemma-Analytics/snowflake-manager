@@ -1,8 +1,10 @@
 import logging
-from typing import FrozenSet, Dict
+import os
+from typing import FrozenSet, Dict, List
 
 from rich.console import Console
 from rich.logging import RichHandler
+from rich.prompt import Prompt
 from yaml import load, Loader
 
 from snowflake_manager.constants import DDL_ROLE, OBJECT_TYPES
@@ -35,25 +37,72 @@ log = logging.getLogger(__name__)
 log.setLevel("INFO")
 console = Console()
 
+# Compatible with GitHub, GitLab and Bitbucket
+IS_CI_RUN = os.getenv("CI") == "true"
 
-def execute_ddl(cursor, statements: dict, is_dry_run: bool) -> None:
+
+def build_statements_list(statements: Dict) -> List:
+    """
+    Build a list of statements to be executed from a dictionary of statements with the
+    structure:
+    {
+        "user": {
+            "drop": ["DROP USER ...", "DROP USER ..."],
+            "create": ["CREATE USER ..., "CREATE USER ..."],
+            "alter": ["ALTER USER ..., "ALTER USER ..."],
+        }
+    }
+
+    To a list of statements like:
+    ["DROP USER ...", "DROP USER ...", "CREATE USER ..., "ALTER USER ..."]
+
+    Args:
+        statements: dict with the list of statements of each type (e.g. create, drop)
+                    it assumes statements come as pairs  like "USE ROLE...; CREATE/DROP ..."
+
+    Returns:
+        statements_seq: list with drop, create and alter statements in sequence for all
+                        object types
+    """
+    statements_seq = []
+    for object_type in OBJECT_TYPES:
+        for operation in ["drop", "create", "alter"]:  # Order matters
+            for statement_pair in statements[object_type][operation]:
+                for s in statement_pair.split(";"):
+                    if s:  # Ignore empty strings
+                        statements_seq.append(s)
+    return statements_seq
+
+
+def print_ddl_statements(statements: Dict) -> None:
+    """Print DDL statements to be executed."""
+    if not statements:
+        console.log(
+            "No statements to execute (the state of Snowflake objects matches the Permifrost spec)\n"
+        )
+        return
+    for s in statements:
+        if s.startswith("USE ROLE"):
+            continue
+        console.log(f"[italic]- {s}[/italic]")
+    console.log()
+
+
+def execute_ddl(cursor, statements: List) -> None:
     """Execute drop, create and alter statements in sequence for each object type.
 
     Args:
         cursor: Snowflake API cursor object
-        statements: dict with the list of statements of each type (e.g. create, drop)
-                    it assumes statements come as pairs  like "USE ROLE...; CREATE/DROP ..."
-        is_dry_run: when true, skips any create or drop statement (only prints it)
+        statements: list with drop, create and alter statements in sequence for all
+                    object types
     """
-    for object_type in OBJECT_TYPES:
-        for operation in ["drop", "create", "alter"]:
-            for statement_pair in statements[object_type][operation]:
-                for s in statement_pair.split(";"):
-                    if s:  # Ignore empty strings
-                        console.log(s)
-                        if not is_dry_run:
-                            cursor.execute(s)
-                            console.log("Executed successfully\n")
+    console.log("\n[bold]Executing DDL statements[/bold]:")
+    for s in statements:
+        cursor.execute(s)
+        if s.startswith("USE ROLE"):
+            continue
+        console.log(f"[green]\u2713[/green] [italic]{s}[/italic]")
+        # console.log("\n")
 
 
 def resolve_objects(
@@ -142,7 +191,16 @@ def resolve_objects(
 
 
 def drop_create_objects(permifrost_spec_path: str, is_dry_run: bool):
-    """Drop and create Snowflake objects based on Permifrost specification and inspection of Snowflake metadata."""
+    """
+    Drop and create Snowflake objects based on Permifrost specification and inspection of Snowflake metadata.
+
+    Args:
+        permifrost_spec_path: path to the Permifrost specification file
+        is_dry_run: flag to run the operation in dry-run mode
+
+    Returns:
+        bool: True if the operation was successful, False otherwise
+    """
     permifrost_spec = load(open(permifrost_spec_path, "r"), Loader=Loader)
 
     for object_type in OBJECT_TYPES:
@@ -151,17 +209,29 @@ def drop_create_objects(permifrost_spec_path: str, is_dry_run: bool):
             parse_object_type(permifrost_spec, object_type),
         )
 
-    console.log("\nDDL Statements:")
-    execute_ddl(get_snowflake_cursor(), all_ddl_statements, is_dry_run)
+    console.log("\n[bold]DDL statements to be executed[/bold]:")
+    ddl_statements_seq = build_statements_list(all_ddl_statements)
+    print_ddl_statements(ddl_statements_seq)
+    drop_statements = [s for s in ddl_statements_seq if s.startswith("DROP")]
 
-    is_empty = True
-    for object_type in OBJECT_TYPES:
-        for operation in ["drop", "create", "alter"]:
-            if len(all_ddl_statements[object_type][operation]) > 0:
-                is_empty = False
-                break
-    if is_empty:
+    if IS_CI_RUN:
         console.log(
-            "No statements to execute (state of Snowflake objects matches Permifrost spec)\n"
+            "[bold][yellow]CI run detected[/bold][/yellow]: Skipping DROP confirmation"
         )
-    console.log()
+
+    if not is_dry_run and not IS_CI_RUN and drop_statements:
+        console.log(
+            f"\n[bold][red]WARNING[/bold][/red]: The following DROP statements are about to be executed: {(drop_statements)}"
+        )
+        user_input = Prompt.ask(
+            "\n\t>>> Type [bold]drop[/bold] to proceed or any other key to abort"
+        )
+        if user_input.lower() != "drop":
+            console.log()
+            console.log("Exited without executing any statements")
+            return False
+
+    if not is_dry_run:
+        execute_ddl(get_snowflake_cursor(), ddl_statements_seq)
+
+    return True
