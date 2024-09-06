@@ -213,6 +213,12 @@ def drop_create_objects(permifrost_spec_path: str, is_dry_run: bool):
     ddl_statements_seq = build_statements_list(all_ddl_statements)
     print_ddl_statements(ddl_statements_seq)
     drop_statements = [s for s in ddl_statements_seq if s.startswith("DROP")]
+
+    if IS_CI_RUN:
+        console.log(
+            "[bold][yellow]CI run detected[/bold][/yellow]: Skipping DROP confirmation"
+        )
+
     if not is_dry_run and not IS_CI_RUN and drop_statements:
         console.log(
             f"\n[bold][red]WARNING[/bold][/red]: The following DROP statements are about to be executed: {(drop_statements)}"
