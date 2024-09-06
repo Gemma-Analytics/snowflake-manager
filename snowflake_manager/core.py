@@ -37,8 +37,8 @@ log = logging.getLogger(__name__)
 log.setLevel("INFO")
 console = Console()
 
-# GITHUB_ACTIONS is a default environment variable in GitHub Actions
-IS_CI_RUN = os.getenv("GITHUB_ACTIONS") == "true"
+# Compatible with GitHub, GitLab and Bitbucket
+IS_CI_RUN = os.getenv("CI") == "true"
 
 
 def build_statements_list(statements: Dict) -> List:
