@@ -41,7 +41,7 @@ console = Console()
 IS_CI_RUN = os.getenv("CI") == "true"
 
 
-def build_statements_list(statements: Dict) -> List:
+def build_statements_list(statements: Dict, object_types: List[str] = OBJECT_TYPES) -> List:
     """
     Build a list of statements to be executed from a dictionary of statements with the
     structure:
@@ -59,18 +59,19 @@ def build_statements_list(statements: Dict) -> List:
     Args:
         statements: dict with the list of statements of each type (e.g. create, drop)
                     it assumes statements come as pairs  like "USE ROLE...; CREATE/DROP ..."
+        object_types: list of object types to process, defaults to OBJECT_TYPES constant
 
     Returns:
         statements_seq: list with drop, create and alter statements in sequence for all
                         object types
     """
     statements_seq = []
-    for object_type in OBJECT_TYPES:
+    for object_type in object_types:
         for operation in ["drop", "create", "alter"]:  # Order matters
             for statement_pair in statements[object_type][operation]:
                 for s in statement_pair.split(";"):
                     if s:  # Ignore empty strings
-                        statements_seq.append(s)
+                        statements_seq.append(s.strip())
     return statements_seq
 
 
