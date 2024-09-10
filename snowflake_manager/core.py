@@ -103,7 +103,6 @@ def execute_ddl(cursor, statements: List) -> None:
         if s.startswith("USE ROLE"):
             continue
         console.log(f"[green]\u2713[/green] [italic]{s}[/italic]")
-        # console.log("\n")
 
 
 def resolve_objects(
