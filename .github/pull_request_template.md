@@ -12,4 +12,5 @@
 
 - [ ] My pull request represents one logical piece of work
 - [ ] My commits are related to the pull request and look clean
-- [ ] I tested my changes locally
+- [ ] I tested my changes locally with `pytest -vv`
+- [ ] I formatted my code with `black .`

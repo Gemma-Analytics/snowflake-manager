@@ -81,6 +81,12 @@ PERMISSION_BOT_PASSWORD=...
 
 ## Develop
 
+Install the development dependencies
+
+```bash
+pip install -r requirements-dev.txt
+```
+
 Install the package locally in editable mode
 
 ```bash
@@ -88,3 +94,15 @@ pip install --editable .
 ```
 Then you will be able to edit the code and run the CLI to test changes immediately.
 
+### Unit tests
+You should run the unit tests after changing the code:
+```bash
+pytest -vv
+```
+Likewise, whenever a new functionality is implemented, a new test for it should be added.
+
+### Formatting
+Please run the command below to format the code
+```bash
+black .
+```
