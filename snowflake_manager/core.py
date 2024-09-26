@@ -41,7 +41,9 @@ console = Console()
 IS_CI_RUN = os.getenv("CI") == "true"
 
 
-def build_statements_list(statements: Dict, object_types: List[str] = OBJECT_TYPES) -> List:
+def build_statements_list(
+    statements: Dict, object_types: List[str] = OBJECT_TYPES
+) -> List:
     """
     Build a list of statements to be executed from a dictionary of statements with the
     structure:
