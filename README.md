@@ -81,6 +81,20 @@ PERMISSION_BOT_PASSWORD=...
 
 ## Develop
 
+### Pre-release integration test
+> **Attention**: we currently use a manual process to test new releases that is only applicable to Gemma's internal infrastructure
+
+Before merging changes to `main`, please test the changes using the `develop` branch. Steps:
+
+- Create a new branch for the new feature e.g. `my-new-feature`
+- When finished, create a PR with `develop` branch as the base branch
+- Merge the PR into `develop` branch
+- In Gemma's best practices repo, merge a dummy change on `permifrost.yml` to trigger the CI/CD pipelines (they are configured to install `snowflake-manager` from the `develop` branch)
+- If both the PR (dry run) and merge to main (normal run) pipelines work, proceed to create a new PR in this repo from branch `develop` to `main`
+- Once the PR from `develop` to `main` is merged, the changes will be available to all clients 
+
+### Local setup
+
 Install the development dependencies
 
 ```bash
