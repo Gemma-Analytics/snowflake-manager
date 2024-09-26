@@ -97,7 +97,7 @@ Then you will be able to edit the code and run the CLI to test changes immediate
 ### Unit tests
 You should run the unit tests after changing the code:
 ```bash
-pytest -vv
+pytest
 ```
 Likewise, whenever a new functionality is implemented, a new test for it should be added.
 
